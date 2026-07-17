@@ -107,18 +107,15 @@ def generate_smart_advisory(city):
     ]
     return random.choice(conditions)
 
-@app.route('/')
-def home():
-    return render_template('index.html')
-
-@app.route('/diagnose', methods=['POST'])
+@app.route('/')@app.route('/diagnose', methods=['POST'])
 def diagnose():
     lang = request.form.get('language', 'en')
     city = request.form.get('city', 'New Delhi')
     
     file = request.files.get('image')
     if not file or file.filename == '':
-        return jsonify({"error": "No image uploaded"}), 400
+        # If no image, reload home with an error message
+        return render_template('index.html', error="No image uploaded")
         
     filename = secure_filename(file.filename)
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
@@ -129,24 +126,22 @@ def diagnose():
     
     detected_class = "Healthy"
     
-    # 🧠 Advanced Validation Logic: Crop vs Fake/Object Detection
     if ai_predictions and isinstance(ai_predictions, list) and len(ai_predictions) > 0:
         top_prediction = ai_predictions[0]
         label = top_prediction.get('label', '')
         score = top_prediction.get('score', 0.0)
         
-        # Smart Threshold: If the computer is completely confused, it's not a crop leaf!
+        # Smart Validation Threshold
         if score < 0.28:
-            return jsonify({
+            result_payload = {
                 "crop": "Unknown Object Detected",
                 "disease": "Invalid / Non-Plant Image",
                 "treatment": "We couldn't verify this image as a farm crop. Please take a clear, brightly lit close-up photo focusing only on a single crop leaf.",
                 "prevention": "Avoid blurry pictures, background noise, or capturing human hands/tools in the frame.",
-                "growth_stage": "N/A",
-                "weather": generate_smart_advisory(city)
-            })
+                "growth_stage": "N/A"
+            }
+            return render_template('index.html', result=result_payload, weather=generate_smart_advisory(city))
         
-        # Match output labels against our agronomy knowledge system
         matched = False
         for key in DISEASE_DB.keys():
             if key.lower() in label.lower():
@@ -157,7 +152,6 @@ def diagnose():
         if not matched and "healthy" in label.lower():
             detected_class = "Healthy"
 
-    # Compile Structured Recommendations
     data = DISEASE_DB.get(detected_class, DISEASE_DB["Healthy"])
     
     # Build Multi-Language Translation Map
@@ -178,10 +172,13 @@ def diagnose():
             "growth_stage": data["growth_stage"]
         }
         
-    # Inject Context-Aware Notification Engine
-    result_payload["weather"] = generate_smart_advisory(city)
+    weather_data = generate_smart_advisory(city)
 
-    return jsonify(result_payload)
+    # Render the template directly with the data injection
+    return render_template('index.html', result=result_payload, weather=weather_data)
 
 if __name__ == '__main__':
     app.run(debug=True)
+def home():
+    return render_template('index.html')
+
