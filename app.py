@@ -10,7 +10,8 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-API_URL = "https://api-inference.huggingface.co/models/nusret/plant-disease-recognition-resnet50"
+API_URL = "https://api-inference.huggingface.co/models/mesabo/agri-plant-disease-resnet50"
+
 HF_TOKEN = os.environ.get("HF_API_TOKEN") 
 HEADERS = {"Authorization": f"Bearer {HF_TOKEN}"}
 
