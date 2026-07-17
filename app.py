@@ -99,9 +99,16 @@ def generate_smart_advisory(city):
 @app.route('/')
 def home():
     return render_template('index.html')
-
-@app.route('/diagnose', methods=['POST'])
+@app.route('/diagnose', methods=['GET', 'POST'])
 def diagnose():
+    # If someone opens this page directly via a GET link, send them home
+    if request.method == 'GET':
+        return redirect('/')
+
+    lang = request.form.get('language', 'en')
+    city = request.form.get('city', 'New Delhi')
+    # ... rest of your code remains exactly the same ...
+
     lang = request.form.get('language', 'en')
     city = request.form.get('city', 'New Delhi')
     
