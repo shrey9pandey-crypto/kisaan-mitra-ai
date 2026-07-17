@@ -1,3 +1,9 @@
+
+
+
+
+
+
 import os
 import random
 import requests
@@ -39,8 +45,8 @@ DISEASE_DB = {
         "growth_stage": "Flowering and Fruit setting stage monitoring.",
         "translation": {
             "hi": {"disease": "जीवाणु जनित धब्बा रोग", "treatment": "तांबा-आधारित जीवाणुनाशक दवाओं का उपयोग करें।", "prevention": "प्रमाणित रोग-मुक्त बीजों का चयन करें।"},
-            "te": {"disease": "బాక్టీరియల్ స్పాట్", "treatment": "కాपर ఆధారిత మందులు వాడండి.", "prevention": "ధృవీకరించబడిన విత్తనాలు వాడండి."},
-            "ta": {"disease": "பாக்டீரியா புள்ளி நோய்", "treatment": "தாமிரம் சார்ந்த பாக்டீரியா கொல்லியை தெளிக்கவும்.", "prevention": "ஆரோக்கியமான விதைகளைப் பயன்படுத்துங்கள்."},
+            "te": {"disease": "బాక్టీరియల్ స్పాట్", "treatment": "కాపర్ ఆధారిత మందులు వాడండి.", "prevention": "ధృవీకరించబడిన విత్తనాలు వాడండి."},
+            "ta": {"disease": "பாக்டீரியா புள்ளி நோய்", "treatment": "தாமிர உரம் தெளிக்கவும்.", "prevention": "ஆரோக்கியமான விதைகளைப் பயன்படுத்துங்கள்."},
             "mr": {"disease": "जिवाणूजन्य ठिपके", "treatment": "तांबे-आधारित जिवाणूनाशक फवारा.", "prevention": "रोगमुक्त बियाणे वापरा."},
             "pa": {"disease": "ਬੈਕਟੀਰੀਅਲ ਸਪਾਟ", "treatment": "ਤਾਂਬੇ ਵਾਲੀ ਦਵਾਈ ਦਾ ਛਿੜਕਾਅ ਕਰੋ।", "prevention": "ਸਹੀ ਬੀਜਾਂ ਦੀ ਵਰਤੋਂ ਕਰੋ।"}
         }
@@ -81,13 +87,15 @@ DISEASE_DB = {
         "growth_stage": "Growth structure looks robust. Standard upkeep recommended.",
         "translation": {
             "hi": {"disease": "स्वस्थ पत्ता", "treatment": "कोई उपचार आवश्यक नहीं है। आपकी फसल बहुत अच्छी स्थिति में है!", "prevention": "नियमित रूप से संतुलित जैविक खाद दें।"},
-            "te": {"disease": "ఆరోగ్యకరమైన ఆకు", "treatment": "చికిత్స అవసరం లేదు. మీ పంట సంపూర్ణ ఆరోగ్యంగా ఉంది!", "prevention": "సమతుల్య ఎరువులు వేయండి."},
+            "te": {"disease": "ఆరోగ్యకరమైన ఆకు", "treatment": "చిкиత్స అవసరం లేదు. మీ పంట సంపూర్ణ ఆరోగ్యంగా ఉంది!", "prevention": "సమతుల్య ఎరువులు వేయండి."},
             "ta": {"disease": "ஆரோக்கியமான இலை", "treatment": "சிகிச்சை தேவையில்லை. உங்கள் பயிர் நலம்!", "prevention": "முறையான உரம் மற்றும் நீர் மேலாண்மை."},
             "mr": {"disease": "निरोगी पान", "treatment": "कोणत्याही उपचाराची गरज नाही. पीक उत्तम आहे!", "prevention": "वेळेवर खते आणि पाणी व्यवस्थापन करा."},
             "pa": {"disease": "ਤੰਦਰੁਸਤ ਪੱਤਾ", "treatment": "ਕਿਸੇ ਇਲਾਜ ਦੀ ਲੋੜ ਨਹੀਂ। ਤੁਹਾਡੀ ਫ਼ਸਲ ਬਿਲਕੁਲ ਠੀਕ ਹੈ!", "prevention": "ਸਮੇਂ ਸਿਰ ਦੇਸੀ ਖਾਦਾਂ ਅਤੇ ਪਾਣੀ ਦਿਓ।"}
         }
     }
 }
+
+# --- Core Processing Helper Functions ---
 
 def query_ai_model(filepath):
     try:
@@ -99,7 +107,6 @@ def query_ai_model(filepath):
         return None
 
 def generate_smart_advisory(city):
-    """Generates rich real-world simulation of dynamic weather alerts and farming notifications."""
     conditions = [
         {"temp": 33, "condition": "Sunny / Clear Sky", "alert": "High Evapotranspiration Alert!", "notification": "Schedule drip irrigation early at 5:00 AM or late evening to maximize moisture absorption."},
         {"temp": 21, "condition": "Heavy Monsoonal Rain", "alert": "Waterlogging Risk & Root Rot Alert!", "notification": "Immediately inspect drainage outtakes. Pause all granular chemical fertilizer applications."},
@@ -107,23 +114,26 @@ def generate_smart_advisory(city):
     ]
     return random.choice(conditions)
 
-@app.route('/')@app.route('/diagnose', methods=['POST'])
+# --- Flask Web Routing Engine ---
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/diagnose', methods=['POST'])
 def diagnose():
     lang = request.form.get('language', 'en')
     city = request.form.get('city', 'New Delhi')
     
     file = request.files.get('image')
     if not file or file.filename == '':
-        # If no image, reload home with an error message
         return render_template('index.html', error="No image uploaded")
         
     filename = secure_filename(file.filename)
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(filepath)
 
-    # Trigger Intelligence Inspection Engine
     ai_predictions = query_ai_model(filepath)
-    
     detected_class = "Healthy"
     
     if ai_predictions and isinstance(ai_predictions, list) and len(ai_predictions) > 0:
@@ -131,13 +141,12 @@ def diagnose():
         label = top_prediction.get('label', '')
         score = top_prediction.get('score', 0.0)
         
-        # Smart Validation Threshold
         if score < 0.28:
             result_payload = {
                 "crop": "Unknown Object Detected",
                 "disease": "Invalid / Non-Plant Image",
-                "treatment": "We couldn't verify this image as a farm crop. Please take a clear, brightly lit close-up photo focusing only on a single crop leaf.",
-                "prevention": "Avoid blurry pictures, background noise, or capturing human hands/tools in the frame.",
+                "treatment": "We couldn't verify this image as a farm crop. Please take a clear close-up photo focusing only on a single crop leaf.",
+                "prevention": "Avoid blurry pictures, background noise, or capturing human hands in the frame.",
                 "growth_stage": "N/A"
             }
             return render_template('index.html', result=result_payload, weather=generate_smart_advisory(city))
@@ -154,7 +163,6 @@ def diagnose():
 
     data = DISEASE_DB.get(detected_class, DISEASE_DB["Healthy"])
     
-    # Build Multi-Language Translation Map
     if lang in ['hi', 'te', 'ta', 'mr', 'pa'] and lang in data['translation']:
         result_payload = {
             "crop": data["crop"],
@@ -173,12 +181,7 @@ def diagnose():
         }
         
     weather_data = generate_smart_advisory(city)
-
-    # Render the template directly with the data injection
     return render_template('index.html', result=result_payload, weather=weather_data)
 
 if __name__ == '__main__':
     app.run(debug=True)
-def home():
-    return render_template('index.html')
-
