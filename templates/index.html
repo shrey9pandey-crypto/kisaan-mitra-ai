@@ -1,116 +1,51 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kisan Mitra AI - Intelligent Farming Assistant</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background: #f4f6f0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .hero-banner { background: linear-gradient(135deg, #2e7d32, #1b5e20); color: white; padding: 30px 15px; text-align: center; border-radius: 0 0 25px 25px; }
-        .card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .btn-success { background-color: #2e7d32; border: none; }
-        .btn-success:hover { background-color: #1b5e20; }
-        .response-box { display: none; margin-top: 25px; }
-        .weather-badge { background-color: #e8f5e9; border-left: 5px solid #2e7d32; padding: 15px; border-radius: 8px; }
-    </style>
-</head>
-<body>
 
-    <div class="hero-banner">
-        <h1>🌾 Kisan Mitra AI</h1>
-        <p>AI Powered. Farmer Empowered.</p>
-    </div>
 
-    <div class="container my-5">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card p-4">
-                    <h3 class="mb-4 text-center">Diagnostics & Advisory Dashboard</h3>
-                    <form id="uploadForm">
-                        <div class="mb-3">
-                            <label for="language" class="form-label">🗣 Select Communication Language</label>
-                            <select class="form-select" id="language" name="language">
-                                
-    <option value="en">English</option>
-    <option value="hi">हिन्दी (Hindi)</option>
-    <option value="te">తెలుగు (Telugu)</option>
-    <option value="ta">தமிழ் (Tamil)</option>
-    <option value="mr">मराठी (Marathi)</option>
-    <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
-</select>
-                            </select>
-                        </div>
 
-                        <div class="mb-3">
-                            <label for="city" class="form-label">📍 Enter Your Region/City</label>
-                            <input type="text" class="form-value form-control" id="city" name="city" placeholder="e.g., Jaipur" required>
-                        </div>
 
-                        <div class="mb-4">
-                            <label for="image" class="form-label">📸 Upload Leaf Image for Diagnosis</label>
-                            <input class="form-control" type="file" id="image" name="image" accept="image/*" required>
-                        </div>
+<!-- The Form: No JS event listener needed, it submits directly back to the server -->
+<form action="/diagnose" method="POST" enctype="multipart/form-data">
+    <label for="city">City:</label>
+    <input type="text" name="city" value="New Delhi">
 
-                        <button type="submit" class="btn btn-success w-100 py-2">🔍 Diagnose & Fetch Advice</button>
-                    </form>
-                </div>
+    <label for="language">Language:</label>
+    <select name="language">
+        <option value="en">English</option>
+        <option value="hi">हिन्दी (Hindi)</option>
+        <option value="te">తెలుగు (Telugu)</option>
+        <option value="ta">தமிழ் (Tamil)</option>
+        <option value="mr">मराठी (Marathi)</option>
+        <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+    </select>
 
-                <!-- Result Container -->
-                <div class="card p-4 response-box" id="resultBox">
-                    <h4 class="text-success border-bottom pb-2">Diagnostic Results</h4>
-                    <p><strong>Detected Condition:</strong> <span id="resDisease">--</span></p>
-                    <p><strong>Treatment Measures:</strong> <span id="resTreatment">--</span></p>
-                    <p><strong>Preventive Measures:</strong> <span id="resPrevention">--</span></p>
+    <label for="image">Upload Crop Leaf:</label>
+    <input type="file" name="image" accept="image/*">
 
-                    <h4 class="text-info border-bottom pb-2 mt-4">Local Weather Advisory</h4>
-                    <div class="weather-badge">
-                        <p class="mb-1"><strong>Condition:</strong> <span id="resWeatherCond">--</span></p>
-                        <p class="mb-0"><strong>Farming Recommendation:</strong> <span id="resWeatherAdv">--</span></p>
-                    </div>
-                </div>
+    <button type="submit">Diagnose Crop</button>
+</form>
 
-            </div>
-        </div>
-    </div>
+<hr>
 
-    <script>
-        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            
-            // UI Visual Feedback
-            const submitBtn = document.querySelector('button[type="submit"]');
-            submitBtn.innerText = "Analyzing Plant Leaf...";
-            submitBtn.disabled = true;
+<!-- Display Results Section if data exists -->
+{% if result %}
+<div id="results-panel">
+    <h3>{{ result.crop }} Status</h3>
+    <p><strong>Diagnosis:</strong> {{ result.disease }}</p>
+    <p><strong>Growth Stage Track:</strong> {{ result.growth_stage }}</p>
+    <p><strong>Treatment Recommendation:</strong> {{ result.treatment }}</p>
+    <p><strong>Prevention Method:</strong> {{ result.prevention }}</p>
+</div>
+{% endif %}
 
-            try {
-                const response = await fetch('/diagnose', {
-                    method: 'POST',
-                    body: formData
-                });
-                const result = await response.json();
-                
-                if (response.ok) {
-                    document.getElementById('resDisease').innerText = result.disease;
-                    document.getElementById('resTreatment').innerText = result.treatment;
-                    document.getElementById('resPrevention').innerText = result.prevention;
-                    
-                    document.getElementById('resWeatherCond').innerText = `${result.weather.temp}°C, ${result.weather.condition}`;
-                    document.getElementById('resWeatherAdv').innerText = result.weather.advisory;
-                    
-                    document.getElementById('resultBox').style.display = 'block';
-                    document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth' });
-                } else {
-                    alert("Error processing diagnostics: " + result.error);
-                }
-            } catch (err) {
-                alert("Failed to connect to server backend.");
-            } finally {
-                submitBtn.innerText = "Diagnose & Fetch Advice";
-                submitBtn.disabled = false;
-            }
-        });
-    </script>
-</body>
-</html>
+<!-- Display Smart Weather Warnings if data exists -->
+{% if weather %}
+<div id="weather-panel">
+    <h3>Alert & Weather Conditions</h3>
+    <p><strong>Current:</strong> {{ weather.condition }} ({{ weather.temp }}°C)</p>
+    <p style="color: red;"><strong>Warning:</strong> {{ weather.alert }}</p>
+    <p><strong>Advisory:</strong> {{ weather.notification }}</p>
+</div>
+{% endif %}
+
+{% if error %}
+<p style="color: red;">{{ error }}</p>
+{% endif %}
