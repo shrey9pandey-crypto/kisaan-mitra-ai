@@ -1,51 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kisaan Mitra AI</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 700px; margin: 30px auto; padding: 20px; background-color: #f1f7f1; color: #222; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 25px; border: 1px solid #e0ebe0; }
+        h2 { color: #1b5e20; margin-top: 0; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; color: #2e7d32; }
+        input[type="text"], select, input[type="file"] { width: 100%; padding: 12px; border: 2px solid #ccdccb; border-radius: 6px; box-sizing: border-box; font-size: 15px; background-color: #fafdfa; }
+        input[type="text"]:focus, select:focus { border-color: #2e7d32; outline: none; }
+        .btn { background-color: #2e7d32; color: white; padding: 14px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; transition: background 0.2s; }
+        .btn:hover { background-color: #1b5e20; }
+        .alert-panel { background-color: #fff8e1; border-left: 6px solid #ffb300; padding: 20px; border-radius: 8px; }
+        .error-panel { background-color: #ffebee; border-left: 6px solid #c62828; padding: 15px; border-radius: 8px; color: #c62828; font-weight: bold; }
+        hr { border: 0; height: 1px; background: #e0ebe0; margin: 20px 0; }
+        p { line-height: 1.5; margin: 8px 0; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>🌱 Kisaan Mitra AI</h2>
+        <p style="color: #666; margin-bottom: 20px;">Smart Multi-Language Agronomy Platform</p>
+        
+        <form action="/diagnose" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="city">Nearest City / शहर:</label>
+                <input type="text" name="city" value="New Delhi" required>
+            </div>
+
+            <div class="form-group">
+                <label for="language">Select Language / भाषा चुनें:</label>
+                <select name="language">
+                    <option value="en">English</option>
+                    <option value="hi">हिन्दी (Hindi)</option>
+                    <option value="te">తెలుగు (Telugu)</option>
+                    <option value="ta">தமிழ் (Tamil)</option>
+                    <option value="mr">मराठी (Marathi)</option>
+                    <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="image">Upload Leaf Image / पत्ती की फोटो:</label>
+                <input type="file" name="image" accept="image/*" required>
+            </div>
+
+            <button type="submit" class="btn">Analyze Crop Health</button>
+        </form>
+    </div>
+
+    {% if error %}
+    <div class="error-panel">
+        ⚠️ {{ error }}
+    </div>
+    {% endif %}
+
+    {% if result %}
+    <div class="card" style="border-left: 6px solid #2e7d32;">
+        <h3 style="color: #1b5e20; margin-top:0;">📊 {{ result.crop }} Analysis</h3>
+        <hr>
+        <p><strong>🩺 Condition / Status:</strong> {{ result.disease }}</p>
+        <p><strong>📈 Growth Advisory:</strong> {{ result.growth_stage }}</p>
+        <p><strong>💊 Treatment Plan:</strong> {{ result.treatment }}</p>
+        <p><strong>🛡️ Prevention:</strong> {{ result.prevention }}</p>
+    </div>
+    {% endif %}
+
+    {% if weather %}
+    <div class="card alert-panel">
+        <h3 style="color: #b78103; margin-top:0;">⚠️ Environmental Warning</h3>
+        <hr>
+        <p><strong>🌤️ Local Weather:</strong> {{ weather.condition }} ({{ weather.temp }}°C)</p>
+        <p><strong>🚨 Warning Issued:</strong> <span style="color: #c62828; font-weight: bold;">{{ weather.alert }}</span></p>
+        <p><strong>💡 Emergency Action:</strong> {{ weather.notification }}</p>
+    </div>
+    {% endif %}
+
+</body>
+</html>
 
 
 
 
-<!-- The Form: No JS event listener needed, it submits directly back to the server -->
-<form action="/diagnose" method="POST" enctype="multipart/form-data">
-    <label for="city">City:</label>
-    <input type="text" name="city" value="New Delhi">
 
-    <label for="language">Language:</label>
-    <select name="language">
-        <option value="en">English</option>
-        <option value="hi">हिन्दी (Hindi)</option>
-        <option value="te">తెలుగు (Telugu)</option>
-        <option value="ta">தமிழ் (Tamil)</option>
-        <option value="mr">मराठी (Marathi)</option>
-        <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
-    </select>
 
-    <label for="image">Upload Crop Leaf:</label>
-    <input type="file" name="image" accept="image/*">
 
-    <button type="submit">Diagnose Crop</button>
-</form>
-
-<hr>
-
-<!-- Display Results Section if data exists -->
-{% if result %}
-<div id="results-panel">
-    <h3>{{ result.crop }} Status</h3>
-    <p><strong>Diagnosis:</strong> {{ result.disease }}</p>
-    <p><strong>Growth Stage Track:</strong> {{ result.growth_stage }}</p>
-    <p><strong>Treatment Recommendation:</strong> {{ result.treatment }}</p>
-    <p><strong>Prevention Method:</strong> {{ result.prevention }}</p>
-</div>
-{% endif %}
-
-<!-- Display Smart Weather Warnings if data exists -->
-{% if weather %}
-<div id="weather-panel">
-    <h3>Alert & Weather Conditions</h3>
-    <p><strong>Current:</strong> {{ weather.condition }} ({{ weather.temp }}°C)</p>
-    <p style="color: red;"><strong>Warning:</strong> {{ weather.alert }}</p>
-    <p><strong>Advisory:</strong> {{ weather.notification }}</p>
-</div>
-{% endif %}
-
-{% if error %}
-<p style="color: red;">{{ error }}</p>
-{% endif %}
