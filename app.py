@@ -1,9 +1,3 @@
-
-
-
-
-
-
 import os
 import random
 import requests
@@ -12,16 +6,14 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB limit
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# Advanced Multi-Crop Vision Model (PlantVillage ResNet Model)
 API_URL = "https://api-inference.huggingface.co/models/nusret/plant-disease-recognition-resnet50"
 HF_TOKEN = os.environ.get("HF_API_TOKEN") 
 HEADERS = {"Authorization": f"Bearer {HF_TOKEN}"}
 
-# Massive Agronomy Knowledge Base (Multi-Crop, Deep Insights, 6 Languages)
 DISEASE_DB = {
     "Potato___Early_blight": {
         "crop": "Potato",
@@ -31,7 +23,7 @@ DISEASE_DB = {
         "growth_stage": "Vegetative to Tuber bulking phase tracking recommended.",
         "translation": {
             "hi": {"disease": "अगेती झुलसा रोग", "treatment": "मैनकोजेब कवकनाशी का छिड़काव करें। फव्वारा सिंचाई से बचें।", "prevention": "फसल चक्र अपनाएं।"},
-            "te": {"disease": "ఆకు మచ్చ తెగులు", "treatment": "మాంకోజెబ్ పిచికారీ చేయండి. ఓవర్ హెడ్ నీటి పారుదల వద్దు.", "prevention": "పంట మార్పిడి చేయండి."},
+            "te": {"disease": "ఆకు మచ్చ తెగులు", "treatment": "మాంకోజెబ్ పిచికారీ చేయండి.", "prevention": "పంట మార్పిడి చేయండి."},
             "ta": {"disease": "ஆரம்பகால கருகல் நோய்", "treatment": "மன்கோசெப் பூஞ்சணக்கொல்லியைப் பயன்படுத்தவும்.", "prevention": "பயிர் சுழற்சி முறை."},
             "mr": {"disease": "लवकर येणारा करपा", "treatment": "मॅन्कोझेब बुरशीनाशकाची फवारणी करा.", "prevention": "पीक फेरपालट करा."},
             "pa": {"disease": "ਅਗੇਤਾ ਝੁਲਸ ਰੋਗ", "treatment": "ਮੈਨਕੋਜ਼ੇਬ ਉੱਲੀਨਾਸ਼ਕ ਦਾ ਛਿੜਕਾਅ ਕਰੋ।", "prevention": "ਫ਼ਸਲ ਚੱਕਰ ਅਪਣਾਓ।"}
@@ -41,7 +33,7 @@ DISEASE_DB = {
         "crop": "Tomato",
         "disease": "Bacterial Spot (Xanthomonas)",
         "treatment": "Spray copper-based bactericides combined with Mancozeb.",
-        "prevention": "Use disease-free certified seeds. Do not harvest or trim when plants are wet.",
+        "prevention": "Use disease-free certified seeds.",
         "growth_stage": "Flowering and Fruit setting stage monitoring.",
         "translation": {
             "hi": {"disease": "जीवाणु जनित धब्बा रोग", "treatment": "तांबा-आधारित जीवाणुनाशक दवाओं का उपयोग करें।", "prevention": "प्रमाणित रोग-मुक्त बीजों का चयन करें।"},
@@ -54,11 +46,11 @@ DISEASE_DB = {
     "Tomato___Late_blight": {
         "crop": "Tomato",
         "disease": "Late Blight (Phytophthora infestans)",
-        "treatment": "Apply systemic fungicides like Ridomil Gold. Destroy infected plants immediately.",
-        "prevention": "Ensure wide spacing between plants for wind aeration. Avoid high moisture build-up.",
+        "treatment": "Apply systemic fungicides like Ridomil Gold.",
+        "prevention": "Ensure wide spacing between plants for wind aeration.",
         "growth_stage": "Mid to Late vegetative development phase.",
         "translation": {
-            "hi": {"disease": "पछेती झुलसा रोग", "treatment": "रिडोमिल गोल्ड का उपयोग करें। संक्रमित पौधों को नष्ट करें।", "prevention": "पौधों के बीच उचित दूरी रखें।"},
+            "hi": {"disease": "पछेती झुलसा रोग", "treatment": "रिडोमिल गोल्ड का उपयोग करें।", "prevention": "पौधों के बीच उचित दूरी रखें।"},
             "te": {"disease": "లేట్ బ్లైట్ తెగులు", "treatment": "రిడోమిల్ గోల్డ్ పిచికారీ చేయండి.", "prevention": "మొక్కల మధ్య సరైన దూరం ఉంచండి."},
             "ta": {"disease": "பின்கால கருகல் நோய்", "treatment": "பூஞ்சணக்கொல்லி தெளிக்கவும்.", "prevention": "பயிர்களுக்கு இடையே இடைவெளி விடுக."},
             "mr": {"disease": "उशिरा येणारा करपा", "treatment": "बुरशीनाशक फवारणी करा.", "prevention": "झाडांमध्ये योग्य अंतर ठेवा."},
@@ -68,8 +60,8 @@ DISEASE_DB = {
     "Corn___Common_rust": {
         "crop": "Corn / Maize",
         "disease": "Common Rust (Puccinia sorghi)",
-        "treatment": "Apply strobilurin or triazole fungicides if pustules appear on lower leaves.",
-        "prevention": "Plant rust-resistant hybrid varieties suited for your agroclimatic zone.",
+        "treatment": "Apply strobilurin or triazole fungicides.",
+        "prevention": "Plant rust-resistant hybrid varieties.",
         "growth_stage": "Knee-high growth to Tasseling stage analysis.",
         "translation": {
             "hi": {"disease": "मक्के का गेरूआ रोग (रस्ट)", "treatment": "ट्रायज़ोल कवकनाशी का छिड़काव करें।", "prevention": "रोग-प्रतिरोधी संकर किस्मों को बोएं।"},
@@ -82,20 +74,18 @@ DISEASE_DB = {
     "Healthy": {
         "crop": "Detected Crop",
         "disease": "Healthy Plant Leaf",
-        "treatment": "No active disease found. Beautiful work keeping it nourished!",
-        "prevention": "Maintain optimal N-P-K nutrient schedules and standard soil testing cycles.",
+        "treatment": "No active disease found. Vibrant growth!",
+        "prevention": "Maintain optimal N-P-K nutrient schedules.",
         "growth_stage": "Growth structure looks robust. Standard upkeep recommended.",
         "translation": {
-            "hi": {"disease": "स्वस्थ पत्ता", "treatment": "कोई उपचार आवश्यक नहीं है। आपकी फसल बहुत अच्छी स्थिति में है!", "prevention": "नियमित रूप से संतुलित जैविक खाद दें।"},
-            "te": {"disease": "ఆరోగ్యకరమైన ఆకు", "treatment": "చిкиత్స అవసరం లేదు. మీ పంట సంపూర్ణ ఆరోగ్యంగా ఉంది!", "prevention": "సమతుల్య ఎరువులు వేయండి."},
-            "ta": {"disease": "ஆரோக்கியமான இலை", "treatment": "சிகிச்சை தேவையில்லை. உங்கள் பயிர் நலம்!", "prevention": "முறையான உரம் மற்றும் நீர் மேலாண்மை."},
-            "mr": {"disease": "निरोगी पान", "treatment": "कोणत्याही उपचाराची गरज नाही. पीक उत्तम आहे!", "prevention": "वेळेवर खते आणि पाणी व्यवस्थापन करा."},
-            "pa": {"disease": "ਤੰਦਰੁਸਤ ਪੱਤਾ", "treatment": "ਕਿਸੇ ਇਲਾਜ ਦੀ ਲੋੜ ਨਹੀਂ। ਤੁਹਾਡੀ ਫ਼ਸਲ ਬਿਲਕੁਲ ਠੀਕ ਹੈ!", "prevention": "ਸਮੇਂ ਸਿਰ ਦੇਸੀ ਖਾਦਾਂ ਅਤੇ ਪਾਣੀ ਦਿਓ।"}
+            "hi": {"disease": "स्वस्थ पत्ता", "treatment": "कोई उपचार आवश्यक नहीं है।", "prevention": "नियमित रूप से संतुलित जैविक खाद दें।"},
+            "te": {"disease": "ఆరోగ్యకరమైన ఆకు", "treatment": "చికిత్స అవసరం లేదు.", "prevention": "సమతుల్య ఎరువులు వేయండి."},
+            "ta": {"disease": "ஆரோக்கியமான இله", "treatment": "சிகிச்சை தேவையில்லை.", "prevention": "முறையான உரம் மற்றும் நீர் மேலாண்மை."},
+            "mr": {"disease": "निरोगी पान", "treatment": "कोणत्याही उपचाराची गरज नाही.", "prevention": "वेळेवर खते व्यवस्थापन करा."},
+            "pa": {"disease": "ਤੰਦਰੁਸਤ ਪੱਤਾ", "treatment": "ਕਿਸੇ ਇਲਾਜ ਦੀ ਲੋੜ ਨਹੀਂ।", "prevention": "ਸਮੇਂ ਸਿਰ ਦੇਸੀ ਖਾਦਾਂ ਦਿਓ।"}
         }
     }
 }
-
-# --- Core Processing Helper Functions ---
 
 def query_ai_model(filepath):
     try:
@@ -108,13 +98,11 @@ def query_ai_model(filepath):
 
 def generate_smart_advisory(city):
     conditions = [
-        {"temp": 33, "condition": "Sunny / Clear Sky", "alert": "High Evapotranspiration Alert!", "notification": "Schedule drip irrigation early at 5:00 AM or late evening to maximize moisture absorption."},
-        {"temp": 21, "condition": "Heavy Monsoonal Rain", "alert": "Waterlogging Risk & Root Rot Alert!", "notification": "Immediately inspect drainage outtakes. Pause all granular chemical fertilizer applications."},
-        {"temp": 27, "condition": "High Humidity / Overcast", "alert": "Fungal Infection Alert Spore Index High!", "notification": "High risk environment for Blight spreading. Inspect undersides of lower canopy foliage today."}
+        {"temp": 33, "condition": "Sunny / Clear Sky", "alert": "High Evapotranspiration Alert!", "notification": "Schedule drip irrigation early at 5:00 AM."},
+        {"temp": 21, "condition": "Heavy Monsoonal Rain", "alert": "Waterlogging Risk & Root Rot Alert!", "notification": "Immediately inspect drainage outtakes."},
+        {"temp": 27, "condition": "High Humidity / Overcast", "alert": "Fungal Infection Alert Spore Index High!", "notification": "High risk environment for Blight spreading."}
     ]
     return random.choice(conditions)
-
-# --- Flask Web Routing Engine ---
 
 @app.route('/')
 def home():
@@ -134,32 +122,37 @@ def diagnose():
     file.save(filepath)
 
     ai_predictions = query_ai_model(filepath)
-    detected_class = "Healthy"
     
-    if ai_predictions and isinstance(ai_predictions, list) and len(ai_predictions) > 0:
-        top_prediction = ai_predictions[0]
-        label = top_prediction.get('label', '')
-        score = top_prediction.get('score', 0.0)
-        
-        if score < 0.28:
-            result_payload = {
-                "crop": "Unknown Object Detected",
-                "disease": "Invalid / Non-Plant Image",
-                "treatment": "We couldn't verify this image as a farm crop. Please take a clear close-up photo focusing only on a single crop leaf.",
-                "prevention": "Avoid blurry pictures, background noise, or capturing human hands in the frame.",
-                "growth_stage": "N/A"
-            }
-            return render_template('index.html', result=result_payload, weather=generate_smart_advisory(city))
-        
-        matched = False
-        for key in DISEASE_DB.keys():
-            if key.lower() in label.lower():
-                detected_class = key
-                matched = True
-                break
-        
-        if not matched and "healthy" in label.lower():
-            detected_class = "Healthy"
+    # Validation block: Ensure the prediction exists and is strong enough
+    if not ai_predictions or not isinstance(ai_predictions, list) or len(ai_predictions) == 0:
+        return render_template('index.html', error="AI Service busy. Please try processing your leaf scan again.")
+
+    top_prediction = ai_predictions[0]
+    label = top_prediction.get('label', '')
+    score = top_prediction.get('score', 0.0)
+    
+    # 🌟 Fail-safe: Reject non-crop objects or messy images immediately
+    is_valid_crop = any(keyword in label.lower() for keyword in ["leaf", "blight", "rust", "spot", "healthy", "scab", "rot", "mildew"])
+    if score < 0.45 or not is_valid_crop:
+        invalid_payload = {
+            "crop": "Non-Plant Item Blocked",
+            "disease": "Invalid / Non-Plant Image Detected",
+            "treatment": "The AI is highly confident that this object is not a farm crop leaf.",
+            "prevention": "Please upload a clear, focused, close-up snapshot of a single crop leaf.",
+            "growth_stage": "N/A"
+        }
+        return render_template('index.html', result=invalid_payload, weather=generate_smart_advisory(city))
+
+    detected_class = "Healthy"
+    matched = False
+    for key in DISEASE_DB.keys():
+        if key.lower() in label.lower():
+            detected_class = key
+            matched = True
+            break
+            
+    if not matched and "healthy" in label.lower():
+        detected_class = "Healthy"
 
     data = DISEASE_DB.get(detected_class, DISEASE_DB["Healthy"])
     
@@ -180,8 +173,12 @@ def diagnose():
             "growth_stage": data["growth_stage"]
         }
         
-    weather_data = generate_smart_advisory(city)
-    return render_template('index.html', result=result_payload, weather=weather_data)
+    return render_template('index.html', result=result_payload, weather=generate_smart_advisory(city))
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+
+
+
