@@ -1,0 +1,21 @@
+/* Custom enhancements to complement the Bootstrap layout */
+body {
+    background-color: #f1f5f0;
+}
+
+.hero-banner {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+
+.weather-badge {
+    transition: background-color 0.3s ease;
+}
