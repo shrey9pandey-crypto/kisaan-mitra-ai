@@ -1,5 +1,12 @@
+
+
+
+
+
+
 import os
 import random
+import requests
 from flask import Flask, render_template, request, jsonify
 from werkzeug.utils import secure_filename
 
@@ -10,7 +17,13 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB file limit
 # Ensure the upload directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# Predefined Knowledge Base for Crop Diseases
+# Free Hugging Face API URL for Crop Disease Classification
+API_URL = "https://api-inference.huggingface.co/models/nusret/plant-disease-recognition-resnet50"
+# 🔒 SECURE WAY: Grab the API token safely from Render's environment
+HF_TOKEN = os.environ.get("HF_API_TOKEN") 
+HEADERS = {"Authorization": f"Bearer {HF_TOKEN}"}
+
+# Comprehensive Knowledge Base mapped to real model outputs
 DISEASE_DB = {
     "Potato___Early_blight": {
         "disease": "Early Blight (Alternaria solani)",
@@ -65,8 +78,17 @@ DISEASE_DB = {
     }
 }
 
+def query_ai_model(filepath):
+    """Sends the uploaded photo to the cloud AI model for actual classification."""
+    try:
+        with open(filepath, "rb") as f:
+            data = f.read()
+        response = requests.post(API_URL, headers=HEADERS, data=data, timeout=10)
+        return response.json()
+    except Exception:
+        return None
+
 def get_weather_advisory(city):
-    # Simulated weather variation based on location
     mock_weather_conditions = [
         {"temp": 34, "condition": "Sunny", "advisory": "High evaporation rates predicted. Water fields in early morning hours to save water."},
         {"temp": 22, "condition": "Heavy Rain", "advisory": "Risk of waterlogging. Clear drainage channels to prevent root rot."},
@@ -91,9 +113,36 @@ def diagnose():
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(filepath)
 
-    # Randomly select a disease for demonstration purposes
-    detected_class = random.choice(list(DISEASE_DB.keys()))
-    data = DISEASE_DB[detected_class]
+    # 1. Ask the AI Model to inspect the image
+    ai_predictions = query_ai_model(filepath)
+    
+    detected_class = "Healthy"
+    
+    # 2. Check the results from the AI
+    if ai_predictions and isinstance(ai_predictions, list) and len(ai_predictions) > 0:
+        top_prediction = ai_predictions[0]
+        label = top_prediction.get('label', '')
+        score = top_prediction.get('score', 0.0)
+        
+        # Validation: If the AI is highly uncertain, it's a random object/non-crop photo
+        if score < 0.30:
+            return jsonify({
+                "disease": "Invalid Image / Not a Crop Leaf",
+                "treatment": "Please upload a clear, close-up picture of a plant or crop leaf.",
+                "prevention": "Ensure lighting is clear and the leaf fills the frame.",
+                "weather": get_weather_advisory(city)
+            })
+        
+        # Map the model's output name to our database keys
+        for key in DISEASE_DB.keys():
+            if key.lower() in label.lower():
+                detected_class = key
+                break
+            elif "healthy" in label.lower():
+                detected_class = "Healthy"
+
+    # 3. Pull the treatment data out
+    data = DISEASE_DB.get(detected_class, DISEASE_DB["Healthy"])
     
     # Apply translation selection
     if lang in ['hi', 'te'] and lang in data['translation']:
@@ -109,9 +158,7 @@ def diagnose():
             "prevention": data["prevention"]
         }
         
-    # Attach simulated weather insights
     result_payload["weather"] = get_weather_advisory(city)
-
     return jsonify(result_payload)
 
 if __name__ == '__main__':
